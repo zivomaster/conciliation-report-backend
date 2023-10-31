@@ -15,7 +15,7 @@ from app.utils import verify_password_reset_token
 router = APIRouter()
 
 
-@router.post("/login/access-token", response_model=schemas.Token)
+@router.post("/login/access-token", response_model=schemas.LoginResponse)
 def login_access_token(
     db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
@@ -39,13 +39,13 @@ def login_access_token(
         {"sub": user.username}, expires_delta=access_token_expires
     )
     return {
-        "user": user.username,
-        "auth":
-            {
-                "access_token": access_token,
-                "token_type": "bearer",
-            }
-
+        "user": {
+            "username": user.username,
+        },
+        "auth":  {
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
     }
 
 
