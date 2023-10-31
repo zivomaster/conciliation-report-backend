@@ -46,11 +46,26 @@ async def save_connection(
                 payload.database = output_file['message']['filename']
                 connection = crud.database_connections.create_connection_raw(
                     db, db_conn=payload)
+                connector_type = crud.connectors_types.get_connector_by_id(
+                    db, contype_id=connection.contype_id)
+                # auth_methods
+                auth_method = []
+                # types
+                types_connection = crud.connectors_types.get_type_connection_by_id(
+                    db, type_id=connector_type.type_id)
+                # get datastructure output
+                # generate output
+                output_obj = {
+                    "id": connector_type.contype_id,
+                    "authenticationMethods": auth_method,
+                    "label": connector_type.label,
+                    "thumbnailUrl": connector_type.thumbnail_url,
+                    # Asignar los tipos según la lógica
+                    "type": types_connection.name
+                }
                 output = {
                     "id": connection.id,
-                    "connector": {
-                        "id": connection.contype_id
-                    },
+                    "connector": output_obj,
                     "connectionName": payload.database,
                     "database": payload.database,
                     "hostname": "",
