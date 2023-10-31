@@ -39,13 +39,9 @@ def login_access_token(
         {"sub": user.username}, expires_delta=access_token_expires
     )
     return {
-        "user": user.username,
-        "auth":
-            {
-                "access_token": access_token,
-                "token_type": "bearer",
-            }
-
+        "username": user.username,
+        "access_token": access_token,
+        "token_type": "bearer",
     }
 
 

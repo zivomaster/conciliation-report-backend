@@ -46,8 +46,20 @@ async def save_connection(
                 payload.database = output_file['message']['filename']
                 connection = crud.database_connections.create_connection_raw(
                     db, db_conn=payload)
-                print(connection)
-                return {"message": {"connectionName": payload.database}, "status": 200}
+                output = {
+                    "id": connection.id,
+                    "connector": {
+                        "id": connection.contype_id
+                    },
+                    "connectionName": payload.database,
+                    "database": payload.database,
+                    "hostname": "",
+                    "port": 0,
+                    "username": "",
+                    "isFile": payload.isFile
+                }
+                # {"message": {"connectionName": payload.database}, "status": 200}
+                return output
             else:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
