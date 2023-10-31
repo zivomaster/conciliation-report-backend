@@ -1,8 +1,9 @@
 from datetime import timedelta
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
@@ -14,14 +15,19 @@ from app.utils import verify_password_reset_token
 
 router = APIRouter()
 
+class LoginPayload(BaseModel):
+    username: str
+    password: str
 
 @router.post("/login/access-token", response_model=schemas.LoginResponse)
 def login_access_token(
-    db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
+    form_data: LoginPayload,
+    db: Session = Depends(deps.get_db)
 ) -> Any:
     """
     OAuth2 compatible token login, get an access token for future requests
     """
+    print(form_data)
     user = crud.user.authenticate(
         db, email=form_data.username, password=form_data.password
     )
