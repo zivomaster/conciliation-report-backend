@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     SUPPORTED_FILE_TYPES = {
         # 'data:application/json;base64': 'json',
         'data:application/csv;base64': 'csv',
+        'data:text/csv;base64': 'csv',
         'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64': 'xlsx',
     }
 
