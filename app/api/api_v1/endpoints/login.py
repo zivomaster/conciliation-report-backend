@@ -15,9 +15,11 @@ from app.utils import verify_password_reset_token
 
 router = APIRouter()
 
+
 class LoginPayload(BaseModel):
     username: str
     password: str
+
 
 @router.post("/login/access-token", response_model=schemas.LoginResponse)
 def login_access_token(
@@ -49,8 +51,8 @@ def login_access_token(
             "username": user.username,
         },
         "auth":  {
-            "access_token": access_token,
-            "token_type": "bearer",
+            "accessToken": access_token,
+            "tokenType": "bearer",
         }
     }
 
