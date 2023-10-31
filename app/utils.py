@@ -78,7 +78,6 @@ def convert_base64_to_file(Base64file: str, sep: str = ',') -> Optional[Dict]:
     }
     # chek base64 file
     file_type = check_base64_file(Base64file)
-    print(file_type)
     if file_type.get("status") == 400:
         return file_type
 

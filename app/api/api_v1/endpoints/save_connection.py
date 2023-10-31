@@ -41,7 +41,8 @@ async def save_connection(
             )
     else:
         if payload.isFile:
-            output_file = utils.save_file(Base64file=payload.file)
+            output_file = utils.save_file(
+                Base64file=payload.file, sep=payload.separator)
             if output_file.get("message") != 400:
                 payload.file = output_file['message']['filename']
                 connection = crud.database_connections.create_connection_raw(
@@ -66,7 +67,7 @@ async def save_connection(
                 output = {
                     "id": connection.id,
                     "connector": output_obj,
-                    "connectionName": payload.database,
+                    "connectionName": payload.connectionName,
                     "database": payload.database,
                     "hostname": "",
                     "port": 0,
