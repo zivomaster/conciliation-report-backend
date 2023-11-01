@@ -49,6 +49,16 @@ class ConnectorTypeModelSchema(BaseModel):
     auth_meth_id: Optional[int] = None
 
 
+class MessageConnectionResponse(BaseModel):
+    detail: str
+    dialect: Optional[str] = ""
+
+
+class StringConnectionResponse(BaseModel):
+    message: Optional[MessageConnectionResponse] = None
+    status: Optional[int] = None
+
+
 class ConnectorSchema(BaseModel):
     id: Optional[int]
     label: str
@@ -58,10 +68,11 @@ class ConnectorSchema(BaseModel):
 
 
 class DatabaseConnectionListSchema(BaseModel):
-    id:  uuid.UUID
-    connectionName: str
+    id:  Optional[uuid.UUID]
+    connectionName: Optional[str]
     database: Optional[str]
     hostname: Optional[str]
     port: Optional[str]
-    connector: ConnectorSchema
+    connector: Optional[ConnectorSchema]
     isFile: Optional[bool] = False
+    response: Optional[StringConnectionResponse] = None

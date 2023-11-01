@@ -4,11 +4,15 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.crud.base import CRUDBase
 from app.crud.crud_connectors_types import connectors_types
+from app.services import database_connections_handlers as conn_handler
 from app.models import DatabaseConnection, Type, AuthenticationMethod, ConnectorType
 from app.schemas.database_connection import *
 
 
 class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCreate, DatabaseConnectionUpdate]):
+
+    def get_connection_by_id(self, db: Session, id: uuid) -> Optional[DatabaseConnection]:
+        return db.query(DatabaseConnection).filter(DatabaseConnection.id == id).first()
 
     def check_if_connection_exists(self, db: Session, connection_name: str) -> Optional[DatabaseConnection]:
         return db.query(DatabaseConnection).filter(DatabaseConnection.connection_name == connection_name).first()
@@ -82,6 +86,7 @@ class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCre
             ]
             return elements
         else:
+            msg = StringConnectionResponse(status=200)
             return DatabaseConnectionListSchema(
                 id=connections.id,
                 connectionName=connections.connection_name,
@@ -89,7 +94,8 @@ class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCre
                 hostname=connections.hostname,
                 port=connections.port,
                 connector=connectors[connections.contype_id],
-                isFile=connections.is_file)
+                isFile=connections.is_file,
+                response=msg)
 
     def create_connection_db(self, db: Session,
                              db_conn: DatabaseConnectionCreate) -> DatabaseConnection:
@@ -110,9 +116,108 @@ class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCre
         db.commit()
         return db_obj
 
+    def update_connection_db(self, db: Session,
+                             db_conn: DatabaseConnection,
+                             current_object: DatabaseConnection) -> Optional[DatabaseConnectionListSchema]:
+        """
+        retrive database connection details
+        """
+        obj_update = None
+        id_conn = db_conn.id
+        if id_conn is not None and id_conn != "":
+            conn_update = db.query(DatabaseConnection).filter(
+                DatabaseConnection.id == db_conn.id).first()
+
+            if conn_update:
+                # update connection
+                conn_update.connection_name = db_conn.connectionName
+                conn_update.hostname = db_conn.hostname
+                conn_update.port = db_conn.port
+                conn_update.username = db_conn.username
+                conn_update.password = db_conn.password
+                # Update
+                db.commit()
+                return self.format_struct_to_save(db,
+                                                  connections=conn_update,
+                                                  get_all_files=False)
+            else:
+                obj = self.check_if_connection_exists(
+                    db, connection_name=db_conn.connection_name)
+                return self.format_struct_to_save(
+                    db, connections=obj, get_all_files=False)
+        else:
+            return self.format_struct_to_save(
+                db, connections=current_object
+            )
+
+        return DatabaseConnectionListSchema
+
     def get_all_connections(self, db: Session) -> List[DatabaseConnectionListSchema]:
         connections = db.query(DatabaseConnection).all()
         return self.format_struct_to_save(db, connections=connections, get_all_files=True)
+
+    def save_or_update_connection_db(self,
+                                     db: Session,
+                                     payload: Optional[DatabaseConnectionCreate] = None,
+                                     db_update: Optional[DatabaseConnectionCreate] = None,
+                                     isUpdated: Optional[bool] = False
+                                     ) -> Optional[DatabaseConnectionListSchema]:
+
+        # CREATE
+        # 1. check dialect
+        connector_type = connectors_types.get_connector_by_id(
+            db, contype_id=payload.connectorId)
+        check_connection_dialet = conn_handler.check_dialect_connection(
+            db_type=connector_type.label)
+
+        if check_connection_dialet.status == 400:
+            print("check.dialect")
+            sch_SCR = StringConnectionResponse(
+                message=check_connection_dialet.message, status=check_connection_dialet.status)
+            sch_DCL = DatabaseConnectionListSchema(
+                response=sch_SCR)
+            return sch_DCL
+            # raise HTTPException(
+            #     status_code=status.HTTP_400_BAD_REQUEST,
+            #     detail=f'Can"t create connection {check_connection_dialet}'
+            # )
+        else:
+            # 2. test connection
+            test_connection = conn_handler.test_connection(
+                payload=payload, stringConnResponse=check_connection_dialet)
+            if test_connection.status == 400:
+                print("test-connection")
+                sch_SCR = StringConnectionResponse(
+                    message=test_connection.message, status=test_connection.status)
+                sch_DCL = DatabaseConnectionListSchema(
+                    response=sch_SCR)
+                return sch_DCL
+            else:
+                # 3. save file in s3
+                metadata = conn_handler.get_metadata(
+                    test_connection.message.dialect)
+                metadata_objects = conn_handler.get_tables_metadata(
+                    metadata=metadata)
+                # check Create or update
+                if isUpdated:
+                    upload_file_s3_details = conn_handler.save_file(
+                        metadata_objects=metadata_objects,
+                        isUpdated=True, filename=db_update.file)
+                    payload.file = upload_file_s3_details.message.dialect
+                    update_connection = self.update_connection_db(db,
+                                                                  db_conn=payload,
+                                                                  current_object=db_update)
+                    return update_connection
+                else:
+                    # 4. save connection in db
+                    upload_file_s3_details = conn_handler.save_file(
+                        metadata_objects=metadata_objects)
+                    payload.file = upload_file_s3_details.message.dialect
+                    create_connection = self.create_connection_db(
+                        db=db, db_conn=payload)
+                    format_output = self.format_struct_to_save(db,
+                                                               connections=create_connection)
+                    return format_output
 
 
 database_connections = CRUDDatabaseConnections(DatabaseConnection)

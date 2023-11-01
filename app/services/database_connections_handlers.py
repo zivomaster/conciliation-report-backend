@@ -156,9 +156,14 @@ def save_format_tables(metadata_objects: TableMetadataSchema) -> Optional[Dict]:
     }
 
 
-def save_file(metadata_objects: Optional[TableMetadataSchema]) -> Optional[schema.StringConnectionResponse]:
+def save_file(metadata_objects: Optional[TableMetadataSchema],
+              isUpdated: Optional[bool] = False,
+              filename: Optional[str] = False) -> Optional[schema.StringConnectionResponse]:
+    if isUpdated:
+        pass
+    else:
+        filename = f'{uuid4()}.json'
     # save  JSON file
-    filename = f'{uuid4()}.json'
     metadata = save_format_tables(metadata_objects)
     # Convert dictionary to JSON
     json_data = json.dumps(metadata, indent=4)

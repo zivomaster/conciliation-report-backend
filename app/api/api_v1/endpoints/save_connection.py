@@ -30,17 +30,31 @@ async def save_connection(
     """
     Save and Update connections
     """
+    sch_DCL = schemas.DatabaseConnectionListSchema()
     # get payload
     format_out = None
     # check if connection exists
+    if payload.id is not None and payload.id != "":
+        print("UPDATED-pre")
+        obj = crud.database_connections.get_connection_by_id(db, payload.id)
+        print("Ok-UUID")
+        print(obj)
+        print("save....")
+        update_conn_object = crud.database_connections.save_or_update_connection_db(
+            db=db, payload=payload, db_update=obj, isUpdated=True)
+        print("UPDATED-ok")
+        return update_conn_object
+
     obj = crud.database_connections.check_if_connection_exists(
         db, connection_name=payload.connectionName)
     if obj:
         if obj.is_file:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f'The connection {obj.connection_name} already exist!'
-            )
+            sch_MCR = schemas.MessageConnectionResponse(
+                detail=f'The connection {obj.connection_name} already exist!')
+            sch_SCR = schemas.StringConnectionResponse(
+                message=sch_MCR, status=status.HTTP_400_BAD_REQUEST)
+            sch_DCL = schemas.DatabaseConnectionListSchema(response=sch_SCR)
+            return sch_DCL
     else:
         if payload.isFile:
             output_file = utils.save_file(
@@ -53,44 +67,23 @@ async def save_connection(
                                                                              connections=connection)
                 return format_out
             else:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f'Can"t create connection'
-                )
+                print("payload.is_file")
+                sch_MCR = schemas.MessageConnectionResponse(
+                    detail=f'Can"t create connection')
+                sch_SCR = schemas.StringConnectionResponse(
+                    message=sch_MCR, status=status.HTTP_400_BAD_REQUEST)
+                sch_DCL = schemas.DatabaseConnectionListSchema(
+                    response=sch_SCR)
+                # raise HTTPException(
+                #     status_code=status.HTTP_400_BAD_REQUEST,
+                #     detail=f'Can"t create connection'
+                # )
+                return sch_DCL
         else:
-            # db connection
-            # 1. check dialect
-            connector_type = crud.connectors_types.get_connector_by_id(
-                db, contype_id=payload.connectorId)
-            check_connection_dialet = conn_handler.check_dialect_connection(
-                db_type=connector_type.label)
-            if check_connection_dialet.status == 400:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f'Can"t create connection {check_connection_dialet}'
-                )
-            else:
-                # 2. test connection
-                test_connection = conn_handler.test_connection(
-                    payload=payload, stringConnResponse=check_connection_dialet)
-                if test_connection.status == 400:
-                    return test_connection
-                else:
-                    # 3. save file in s3
-                    metadata = conn_handler.get_metadata(
-                        test_connection.message.dialect)
-                    metadata_objects = conn_handler.get_tables_metadata(
-                        metadata=metadata)
-                    upload_file_s3_details = conn_handler.save_file(
-                        metadata_objects=metadata_objects)
-                    # 4. save connection in db
-                    payload.file = upload_file_s3_details.message.dialect
-                    connection = crud.database_connections.create_connection_db(
-                        db=db, db_conn=payload)
-                    format_output = crud.database_connections.format_struct_to_save(db,
-                                                                                    connections=connection)
-                    return format_output
-    return format_out
+            # creta and save connection db
+            save_conn_object = crud.database_connections.save_or_update_connection_db(
+                db=db, payload=payload)
+            return save_conn_object
 
 
 @router.get("/list-connections", response_model=List[schemas.DatabaseConnectionListSchema])
