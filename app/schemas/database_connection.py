@@ -20,6 +20,11 @@ class DatabaseConnectionBase(BaseModel):
 # Properties to receive via API on creation
 
 
+class AuthMethodSchema(BaseModel):
+    label: Optional[str]
+    type: Optional[str]
+
+
 class DatabaseConnectionCreate(DatabaseConnectionBase):
     id: Optional[str] = None
     currentUser: Optional[str] = None
@@ -34,3 +39,29 @@ class DatabaseConnectionSchema(DatabaseConnectionBase):
 
     class Config:
         orm_mode = True
+
+
+class ConnectorTypeModelSchema(BaseModel):
+    contype_id: int
+    label: str
+    thumbnail_url: str
+    type_id: int
+    auth_meth_id: Optional[int] = None
+
+
+class ConnectorSchema(BaseModel):
+    id: Optional[int]
+    label: str
+    thumbnailUrl: Optional[str]
+    type: str
+    authenticationMethods: Optional[list[AuthMethodSchema]] = []
+
+
+class DatabaseConnectionListSchema(BaseModel):
+    id:  uuid.UUID
+    connectionName: str
+    database: Optional[str]
+    hostname: Optional[str]
+    port: Optional[str]
+    connector: ConnectorSchema
+    isFile: Optional[bool] = False

@@ -1,18 +1,19 @@
 # typing
-from typing import Any, List, Dict, Optional
+from typing import Any, List
 # pandas
 import pandas as pd
 # fastAPI
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, status
+from fastapi import APIRouter, HTTPException, Depends, status
 # sqlalchemy
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 
 # TODO app
 from app import crud, schemas, models
 from app.api import deps
 from app.core.config import settings
 from app.core import security
-from app.services.AWS_handled_files import s3_upload
+from app.services import database_connections_handlers as conn_handler
 from app import utils
 
 # cryptography
@@ -21,7 +22,7 @@ from cryptography.hazmat.primitives import hashes
 router = APIRouter()
 
 
-@router.post("/", response_model=Optional[Dict])
+@router.post("/", response_model=schemas.DatabaseConnectionListSchema)
 async def save_connection(
     payload: schemas.DatabaseConnectionCreate,
     db: Session = Depends(deps.get_db),
@@ -30,6 +31,7 @@ async def save_connection(
     Save and Update connections
     """
     # get payload
+    format_out = None
     # check if connection exists
     obj = crud.database_connections.check_if_connection_exists(
         db, connection_name=payload.connectionName)
@@ -47,77 +49,55 @@ async def save_connection(
                 payload.file = output_file['message']['filename']
                 connection = crud.database_connections.create_connection_raw(
                     db, db_conn=payload)
-                connector_type = crud.connectors_types.get_connector_by_id(
-                    db, contype_id=connection.contype_id)
-                # auth_methods
-                auth_method = []
-                # types
-                types_connection = crud.connectors_types.get_type_connection_by_id(
-                    db, type_id=connector_type.type_id)
-                # get datastructure output
-                # generate output
-                output_obj = {
-                    "id": connector_type.contype_id,
-                    "authenticationMethods": auth_method,
-                    "label": connector_type.label,
-                    "thumbnailUrl": connector_type.thumbnail_url,
-                    # Asignar los tipos según la lógica
-                    "type": types_connection.name
-                }
-                output = {
-                    "id": connection.id,
-                    "connector": output_obj,
-                    "connectionName": payload.connectionName,
-                    "database": payload.database,
-                    "hostname": "",
-                    "port": 0,
-                    "username": "",
-                    "isFile": payload.isFile
-                }
-                # {"message": {"connectionName": payload.database}, "status": 200}
-                return output
+                format_out = crud.database_connections.format_struct_to_save(db,
+                                                                             connections=connection)
+                return format_out
             else:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f'Can"t create connection'
                 )
+        else:
+            # db connection
+            # 1. check dialect
+            connector_type = crud.connectors_types.get_connector_by_id(
+                db, contype_id=payload.connectorId)
+            check_connection_dialet = conn_handler.check_dialect_connection(
+                db_type=connector_type.label)
+            if check_connection_dialet.status == 400:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f'Can"t create connection {check_connection_dialet}'
+                )
+            else:
+                # 2. test connection
+                test_connection = conn_handler.test_connection(
+                    payload=payload, stringConnResponse=check_connection_dialet)
+                if test_connection.status == 400:
+                    return test_connection
+                else:
+                    # 3. save file in s3
+                    metadata = conn_handler.get_metadata(
+                        test_connection.message.dialect)
+                    metadata_objects = conn_handler.get_tables_metadata(
+                        metadata=metadata)
+                    upload_file_s3_details = conn_handler.save_file(
+                        metadata_objects=metadata_objects)
+                    # 4. save connection in db
+                    payload.file = upload_file_s3_details.message.dialect
+                    connection = crud.database_connections.create_connection_db(
+                        db=db, db_conn=payload)
+                    format_output = crud.database_connections.format_struct_to_save(db,
+                                                                                    connections=connection)
+                    return format_output
+    return format_out
 
-    #     # plain files
 
-    # # save csv
-
-    # # save json
-    # else:
-    #     pass
-    # # database
-
-    return obj
-# @router.post("/upload", response_model=Any)
-# async def upload(file: UploadFile | None = None):
-#     if not file:
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail='No file found!!'
-#         )
-
-#     contents = await file.read()
-#     byte_stream = BytesIO(contents)
-#     size = len(contents)
-
-#     # if not 0 < size <= 1 * MB:
-#     #     raise HTTPException(
-#     #         status_code=status.HTTP_400_BAD_REQUEST,
-#     #         detail='Supported file size is 0 - 1 MB'
-#     #     )
-#     df = pd.read_excel(byte_stream)
-#     print(df.columns)
-#     file_type = magic.from_buffer(buffer=contents, mime=True)
-#     if file_type not in settings.SUPPORTED_FILE_TYPES:
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail=f'Unsupported file type: {file_type}. Supported types are {settings.SUPPORTED_FILE_TYPES}'
-#         )
-#     file_name = f'{uuid4()}.{settings.SUPPORTED_FILE_TYPES[file_type]}'
-#     path_file_to_upload = 'development/development/files/raw-connections/'
-#     s3_upload(contents=contents, key=file_name, path=path_file_to_upload)
-#     return {'file_name': file_name}
+@router.get("/list-connections", response_model=List[schemas.DatabaseConnectionListSchema])
+def list_connections(
+    db: Session = Depends(deps.get_db)
+) -> Any:
+    """
+    Retrieve connections
+    """
+    return crud.database_connections.get_all_connections(db)

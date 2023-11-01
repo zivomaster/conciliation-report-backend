@@ -109,7 +109,8 @@ INSERT INTO connectors_types (label,thumbnail_url,type_id,auth_meth_id) VALUES (
 INSERT INTO connectors_types (label,thumbnail_url,type_id,auth_meth_id) VALUES ('BigQuery','https://cdn.icon-icons.com/icons2/2699/PNG/512/google_bigquery_logo_icon_168150.png',1,2);
 INSERT INTO connectors_types (label,thumbnail_url,type_id,auth_meth_id) VALUES ('MySQL','https://cdn.worldvectorlogo.com/logos/mysql-6.svg',1,1);
 INSERT INTO connectors_types (label,thumbnail_url,type_id,auth_meth_id) VALUES ('MongoDB','https://cdn.worldvectorlogo.com/logos/mongodb-icon-1.svg',1,1);
-INSERT INTO connectors_types (label,thumbnail_url,type_id) VALUES ('JSON','https://cdn.worldvectorlogo.com/logos/json.svg',2);
 INSERT INTO connectors_types (label,thumbnail_url,type_id) VALUES ('CSV','https://static-00.iconduck.com/assets.00/csv-icon-448x512-rkoi7crs.png',3);
 INSERT INTO connectors_types (label,thumbnail_url,type_id) VALUES ('EXCEL','https://cdn.worldvectorlogo.com/logos/excel-4.svg',4);
+INSERT INTO connectors_types (label,thumbnail_url,type_id,auth_meth_id) VALUES ('Oracle','https://upload.wikimedia.org/wikipedia/commons/5/50/Oracle_logo.svg',1,1);
+INSERT INTO connectors_types (label,thumbnail_url,type_id,auth_meth_id) VALUES ('SQLServer','https://cdn.worldvectorlogo.com/logos/microsoft-sql-server-1.svg',1,1);
 COMMIT;

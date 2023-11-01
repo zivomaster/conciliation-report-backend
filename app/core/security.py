@@ -15,7 +15,6 @@ from app.core.config import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ALGORITHM = "HS256"
-BUCKET_PATH_KEYS = "development/development/key-pair/"
 
 
 def create_access_token(
@@ -60,10 +59,10 @@ def generate_private_public_key_pair() -> Dict:
     )
     save_priv_key = s3_upload(contents=private_pem,
                               key=settings.PRIVATE_KEY_PEM_NAME + '.pem',
-                              path=BUCKET_PATH_KEYS)
+                              path=settings.BUCKET_PATH_KEYS)
     save_pub_key = s3_upload(contents=public_pem,
                              key=settings.PUBLIC_KEY_PEM_NAME + '.pem',
-                             path=BUCKET_PATH_KEYS)
+                             path=settings.BUCKET_PATH_KEYS)
     return {
         "message": {
             "private_key": save_priv_key,
@@ -76,7 +75,7 @@ def generate_private_public_key_pair() -> Dict:
 def get_private_key():
     # Download private key from S3
     response = s3_download(
-        settings.PRIVATE_KEY_PEM_NAME+'.pem', BUCKET_PATH_KEYS)
+        settings.PRIVATE_KEY_PEM_NAME+'.pem', settings.BUCKET_PATH_KEYS)
     private_key_data = response['Body'].read()
     # Deserialize private key
     # For example, to print the keys
@@ -89,9 +88,34 @@ def get_private_key():
 def get_public_key():
     # Download private key from S3
     response = s3_download(
-        settings.PUBLIC_KEY_PEM_NAME+'.pem', BUCKET_PATH_KEYS)
+        settings.PUBLIC_KEY_PEM_NAME+'.pem', settings.BUCKET_PATH_KEYS)
     public_key_data = response['Body'].read()
     # Deserialize private key
     public_key = serialization.load_pem_public_key(public_key_data)
     print("Public Key:", public_key)
     return public_key
+
+
+def encrypt_message(public_key, message: str):
+    encrypted = public_key.encrypt(
+        message,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return encrypted
+
+
+def decrypt_message(private_key, encrypted):
+    # Decrypt the encrypted message using the private key
+    decrypted = private_key.decrypt(
+        encrypted,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return decrypted

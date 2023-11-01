@@ -24,7 +24,8 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = config("POSTGRES_USER", cast=str)
     POSTGRES_PASSWORD: str = config("POSTGRES_PASSWORD", cast=str)
     POSTGRES_DB: str = config("POSTGRES_DB", cast=str)
-    SQLALCHEMY_DATABASE_URI: str = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:5432/{POSTGRES_DB}'
+    POSTGRES_PORT: int = config("POSTGRES_PORT", cast=int)
+    SQLALCHEMY_DATABASE_URI: str = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}'
     # AWS
     AWS_BUCKET_NAME: str = config("AWS_BUCKET_NAME", cast=str)
     AWS_REGION: str = ""
@@ -32,6 +33,8 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: str = config("AWS_SECRET_ACCESS_KEY", cast=str)
     BUCKET_PATH_SAVE_CONNECTIONS: str = config(
         "BUCKET_PATH_SAVE_CONNECTIONS", cast=str)
+    BUCKET_PATH_KEYS: str = config(
+        "BUCKET_PATH_KEYS", cast=str)
     # KEY-PAIRS
     PRIVATE_KEY_PEM_NAME: str = config("PRIVATE_KEY_PEM_NAME", cast=str)
     PUBLIC_KEY_PEM_NAME: str = config("PUBLIC_KEY_PEM_NAME", cast=str)
@@ -41,6 +44,15 @@ class Settings(BaseSettings):
         'data:application/csv;base64': 'csv',
         'data:text/csv;base64': 'csv',
         'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64': 'xlsx',
+    }
+    # CONNECTIONS HANDLED
+    ALLOW_DIALECTS_DB = {
+        "PostgreSQL": "postgresql+psycopg2",
+        "MySQL": "mysql+pymysql",
+        "Oracle": "oracle+cx_oracle",
+        "SQLServer": "mssql+pyodbc",
+        "MongoDB": "MongoDB",
+        "BigQuery": "BigQuery"
     }
 
     class Config:
