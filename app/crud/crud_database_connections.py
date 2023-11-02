@@ -9,7 +9,7 @@ from app.models import DatabaseConnection, Type, AuthenticationMethod, Connector
 from app.schemas.database_connection import *
 from app.schemas.bigquery_schema import *
 from app.core.config import settings
-from app.services.AWS_handled_files import s3_delete
+from app.services.AWS_handled_files import s3_delete, s3_search
 from app import utils
 
 
@@ -242,6 +242,16 @@ class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCre
         obj = db.query(DatabaseConnection).get(id)
         # delete s3 object
         try:
+            # delete tables selected
+
+            # check if exist in bucket
+            key = str(id)+'.json'
+            isExist = s3_search(key=key,
+                                path=settings.BUCKET_PATH_TABLES_SELECTED)
+            if isExist:
+                delete_tables_selected = s3_delete(
+                    key=key, path=settings.BUCKET_PATH_TABLES_SELECTED)
+
             deleted_item = s3_delete(
                 key=obj.file, path=settings.BUCKET_PATH_SAVE_CONNECTIONS)
             db.delete(obj)

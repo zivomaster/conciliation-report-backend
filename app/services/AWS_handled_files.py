@@ -48,6 +48,8 @@ def s3_delete(key: str, path: str = None) -> Optional[str]:
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
     )
     try:
+        logger.error(str(
+            f"File '{key}' deleted successfully from '{settings.AWS_BUCKET_NAME}' bucket."))
         response = s3.delete_object(
             Bucket=settings.AWS_BUCKET_NAME, Key=path + key)
         return f"File '{key}' deleted successfully from '{settings.AWS_BUCKET_NAME}' bucket."

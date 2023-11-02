@@ -49,7 +49,7 @@ def select_tables(
 ) -> Any:
     """
     Update selected tables
-    """
+    """ 
     # get connection details
     connection = crud.database_connections.get_connection_by_id(db, id=id)
 
