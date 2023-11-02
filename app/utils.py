@@ -10,7 +10,7 @@ from uuid import uuid4
 from app.core.config import settings
 from app.services.AWS_handled_files import s3_upload, s3_download
 from app.schemas.msg import StringConnectionResponse, MessageConnectionResponse
-from app.schemas.connection_table import ConnectionTableSchema
+from app.schemas.connection_table import ConnectionTableSchema, TableDatabaseSchema, FieldsTableSchema
 
 
 def generate_password_reset_token(email: str) -> str:
@@ -221,3 +221,35 @@ def update_selected_tables(key: str,
     upload = s3_upload(contents=contents, key=key,
                        path=settings.BUCKET_PATH_TABLES_SELECTED)
     return list_conn_table
+
+
+def get_array_tables_and_fields_selected(tables_selected: Optional[ConnectionTableSchema] = None,
+                                         metadata_location: Optional[str] = None) -> List[TableDatabaseSchema]:
+    table_database_schema = []
+    # get metadata
+
+    # search file
+    response = s3_download(key=metadata_location,
+                           path=settings.BUCKET_PATH_SAVE_CONNECTIONS)
+    # convert to dict
+    json_data = response['Body'].read().decode('utf-8')
+    # Deserialize the JSON string to a Python list
+
+    json_list = json.loads(json_data)
+    # Get only table names where the condition is met
+    tables_filter = [table for table in tables_selected if table.isSelected]
+    print(tables_filter)
+
+    # Filter the tables based on the provided schemas
+    metadata_list = [fields for fields in json_list["tables"]]
+    for filter in tables_filter:  # refactor this code
+        for item in metadata_list:
+            if filter.name in item["name"]:
+                fields = [FieldsTableSchema(
+                    key=field["key"], name=field["name"], type=field["type"]) for field in item["fields"]]
+                table_shema = TableDatabaseSchema(key=filter.key,
+                                                  name=filter.name,
+                                                  fields=fields)
+                table_database_schema.append(table_shema)
+
+    return table_database_schema

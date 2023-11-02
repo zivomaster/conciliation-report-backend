@@ -8,9 +8,13 @@ class ConnectionTableSchema(BaseModel):
     isSelected: Optional[bool] = False
 
 
-class FieldsTableSchema(ConnectionTableSchema):
+class FieldsTableSchema(BaseModel):
+    key: Optional[str] = None
+    name: Optional[str] = None
     type: Optional[str] = None
 
 
-class TableDatabaseSchema(ConnectionTableSchema):
+class TableDatabaseSchema(BaseModel):
+    key: Optional[str] = None
+    name: Optional[str] = None
     fields: Optional[list[FieldsTableSchema]]

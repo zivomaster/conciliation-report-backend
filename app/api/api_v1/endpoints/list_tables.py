@@ -9,7 +9,7 @@ from app import crud, schemas, models
 from app.api import deps
 from app.core.config import settings
 from app.services.AWS_handled_files import s3_search
-from app.utils import get_array_list_tables, update_selected_tables
+from app.utils import get_array_list_tables, update_selected_tables, get_array_tables_and_fields_selected
 # from app.schemas.user import User, UserCreate, UserUpdate
 router = APIRouter()
 
@@ -68,30 +68,33 @@ def select_tables(
         return response
 
 
-# @router.get("-fields-selected/", response_model=List[schemas.TableDatabaseSchema])
-# def list_tables_fields_selected(
-#     db: Session = Depends(deps.get_db),
-#     connection_name: Optional[str] = None
-# ) -> Any:
-#     """
-#     Retrieve tables fields selected
-#     """
+@router.get("-fields-selected/", response_model=List[schemas.TableDatabaseSchema])
+def list_tables_fields_selected(
+    db: Session = Depends(deps.get_db),
+    connection_name: Optional[str] = None
+) -> Any:
+    """
+    Retrieve tables fields selected
+    """
 
-#     # get connection details
-#     connection = crud.database_connections.get_connection_by_name(
-#         db, connection_name=connection_name)
+    # get connection details
+    connection = crud.database_connections.get_connection_by_name(
+        db, connection_name=connection_name)
 
-#     # check if exist in bucket
-#     key = str(connection.id)+'.json'
-#     isExist = s3_search(key=key,
-#                         path=settings.BUCKET_PATH_TABLES_SELECTED)
-#     if isExist:
-#         # isSelected
-#         response = get_array_tables_selected(
-#             key=connection.file, id_conn=str(connection.id), isExist=isExist)
-#         return response
-#     else:
-#         # full
-#         response = get_array_list_all_tables(
-#             key=connection.file, id_conn=str(connection.id))
-#         return response
+    # check if exist in bucket
+    key = str(connection.id)+'.json'
+    isExist = s3_search(key=key,
+                        path=settings.BUCKET_PATH_TABLES_SELECTED)
+    if isExist:
+        # isSelected
+        tables_selected = get_array_list_tables(
+            key=connection.file, id_conn=str(connection.id), isExist=isExist)
+
+        response = get_array_tables_and_fields_selected(
+            tables_selected=tables_selected, metadata_location=connection.file)
+        return response
+    else:
+        # full
+        response = get_array_list_tables(
+            key=connection.file, id_conn=str(connection.id))
+        return response
