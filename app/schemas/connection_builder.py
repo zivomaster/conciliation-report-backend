@@ -15,7 +15,6 @@ class ConnectionBuilderMongoDB(ConnectionBuilderRDS):
 
 
 class ConnectionBuilderBigQuery(BaseModel):
-    credentials: Optional[dict] = None
     project_id: Optional[str] = None
     dataset_id: Optional[str] = None
 

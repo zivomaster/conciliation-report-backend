@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from app.core.config import settings
 from app.services.AWS_handled_files import s3_upload
+from app.schemas.msg import StringConnectionResponse, MessageConnectionResponse
 
 
 def generate_password_reset_token(email: str) -> str:
@@ -135,3 +136,15 @@ def convert_base64_to_file(Base64file: str, sep: str = ',') -> Optional[Dict]:
 
 def save_file(Base64file: str, sep: str = ',') -> Optional[Dict]:
     return convert_base64_to_file(Base64file=Base64file, sep=sep)
+
+
+def convert_base64_to_big_query(Base64file: str, projectId: str) -> Optional[StringConnectionResponse]:
+    # s3 upload
+    filename = f'{projectId}-{uuid4()}.json'
+    decoded_data = base64.b64decode(Base64file).decode('utf-8')
+    # upload to s3
+    response = s3_upload(contents=decoded_data, key=filename,
+                         path=settings.BUCKET_PATH_KEYS_AUTH_CONNECTIONS)
+    print(response)
+    MCR = MessageConnectionResponse(detail="filename", dialect=filename)
+    return StringConnectionResponse(message=MCR, status=200)

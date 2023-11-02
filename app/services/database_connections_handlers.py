@@ -2,6 +2,7 @@ from typing import Optional, Dict
 from app.schemas.metadata import TableColumnSchema, TableMetadataSchema
 from app.schemas import connection_builder as schema
 from app.schemas import database_connection as db_conn_schema
+from app.schemas import BigQuerySchemaAuth
 import json
 import pyodbc
 from uuid import uuid4
@@ -9,6 +10,7 @@ from sqlalchemy import create_engine, MetaData
 from app.core.config import settings
 from app.core import security
 from .AWS_handled_files import s3_upload
+from .BigQuery_handled_files import BigQuery_auth, get_bigquery_client, get_tables_metadata_bq
 
 
 def check_dialect_connection(db_type: str = None,) -> Optional[schema.StringConnectionResponse]:
@@ -62,11 +64,19 @@ def create_string_connection(stringConnResponse: schema.StringConnectionResponse
             )
         else:
             # Driver name may vary based on your system and installed drivers
-            driver = 'ODBC Driver 17 for SQL Server'
-            str_conn = f'{dialect}://{rds_conn.username}:{rds_conn.password}@{rds_conn.hostname}/{rds_conn.database}?driver={driver}'
+            driver = 'ODBC+Driver+17+for+SQL+Server'
+            str_conn = f'{dialect}://{rds_conn.username}:{rds_conn.password}@{rds_conn.hostname}:{rds_conn.port}/{rds_conn.database}?driver={driver}'
             string_connection_response = schema.StringConnectionResponse(
                 message=schema.MessageConnectionResponse(
                     detail=key, dialect=str_conn),
+                status=200
+            )
+    else:
+        # big query
+        if dialect == "BigQuery":
+            return schema.StringConnectionResponse(
+                message=schema.MessageConnectionResponse(
+                    detail=key, dialect=key),
                 status=200
             )
     return string_connection_response
@@ -76,39 +86,42 @@ def test_connection(payload: db_conn_schema.DatabaseConnectionCreate = None,
                     stringConnResponse: schema.StringConnectionResponse = None
                     ) -> Optional[schema.StringConnectionResponse]:
 
-    public_key = security.get_public_key()
-    # encrypt password
-    print("encryptando password")
-    encrypted_password = security.encrypt_message(
-        public_key, message=payload.password.encode('utf-8'))
-
-    response = create_string_connection(
-        stringConnResponse, payload=payload, password_encrypt=encrypted_password)
     # Test Connection
-    if response.status == 400:
+    if stringConnResponse.status == 400:
         return response
     else:
         output = None
-        try:
-           # Establish the connection
-            engine = create_engine(response.message.dialect)
-            isConnected = False
-            # Test the connection by querying the database
-            with engine.connect() as connection:
-                isConnected = True
-            if isConnected:
+        if stringConnResponse.message.dialect == "BigQuery":
+            output = stringConnResponse
+        else:
+            try:
+                public_key = security.get_public_key()
+                # encrypt password
+                print("encryptando password")
+                encrypted_password = security.encrypt_message(
+                    public_key, message=payload.password.encode('utf-8'))
+
+                response = create_string_connection(
+                    stringConnResponse, payload=payload, password_encrypt=encrypted_password)
+                # Establish the connection
+                engine = create_engine(response.message.dialect)
+                isConnected = False
+                # Test the connection by querying the database
+                with engine.connect() as connection:
+                    isConnected = True
+                if isConnected:
+                    output = schema.StringConnectionResponse(
+                        message=schema.MessageConnectionResponse(
+                            detail="testConnection", dialect=response.message.dialect),
+                        status=200
+                    )
+
+            except Exception as error:
                 output = schema.StringConnectionResponse(
                     message=schema.MessageConnectionResponse(
-                        detail="testConnection", dialect=response.message.dialect),
-                    status=200
+                        detail="testConnection", dialect=f"error: {error}"),
+                    status=400
                 )
-
-        except Exception as error:
-            output = schema.StringConnectionResponse(
-                message=schema.MessageConnectionResponse(
-                    detail="testConnection", dialect=f"error: {error}"),
-                status=400
-            )
     return output
 
 
@@ -133,6 +146,17 @@ def get_tables_metadata(metadata: MetaData) -> list[TableMetadataSchema]:
             table_name=table.name, columns=columns_info)
         table_metadata.append(table_info)
     return table_metadata
+
+
+def get_metadata_bigquery(schema_auth: BigQuerySchemaAuth, filename: str):
+    # get credentials
+    credentials = BigQuery_auth(filename=filename)
+    return get_bigquery_client(credentials=credentials,
+                               project_id=schema_auth.project_id)
+
+
+def get_tables_metadata_bigquery(client, dataset_id: str) -> list[TableMetadataSchema]:
+    return get_tables_metadata_bq(client, dataset_id=dataset_id)
 
 
 def save_format_tables(metadata_objects: TableMetadataSchema) -> Optional[Dict]:

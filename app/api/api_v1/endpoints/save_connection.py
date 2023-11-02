@@ -1,7 +1,5 @@
 # typing
 from typing import Any, List
-# pandas
-import pandas as pd
 # fastAPI
 from fastapi import APIRouter, HTTPException, Depends, status
 # sqlalchemy
@@ -16,9 +14,8 @@ from app.core import security
 from app.services import database_connections_handlers as conn_handler
 from app import utils
 
+import json
 # cryptography
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import hashes
 router = APIRouter()
 
 
@@ -35,14 +32,10 @@ async def save_connection(
     format_out = None
     # check if connection exists
     if payload.id is not None and payload.id != "":
-        print("UPDATED-pre")
         obj = crud.database_connections.get_connection_by_id(db, payload.id)
-        print("Ok-UUID")
-        print(obj)
-        print("save....")
+
         update_conn_object = crud.database_connections.save_or_update_connection_db(
             db=db, payload=payload, db_update=obj, isUpdated=True)
-        print("UPDATED-ok")
         return update_conn_object
 
     obj = crud.database_connections.check_if_connection_exists(
@@ -74,12 +67,9 @@ async def save_connection(
                     message=sch_MCR, status=status.HTTP_400_BAD_REQUEST)
                 sch_DCL = schemas.DatabaseConnectionListSchema(
                     response=sch_SCR)
-                # raise HTTPException(
-                #     status_code=status.HTTP_400_BAD_REQUEST,
-                #     detail=f'Can"t create connection'
-                # )
                 return sch_DCL
         else:
+            print("ok")
             # creta and save connection db
             save_conn_object = crud.database_connections.save_or_update_connection_db(
                 db=db, payload=payload)

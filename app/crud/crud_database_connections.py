@@ -7,6 +7,8 @@ from app.crud.crud_connectors_types import connectors_types
 from app.services import database_connections_handlers as conn_handler
 from app.models import DatabaseConnection, Type, AuthenticationMethod, ConnectorType
 from app.schemas.database_connection import *
+from app.schemas.bigquery_schema import *
+from app import utils
 
 
 class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCreate, DatabaseConnectionUpdate]):
@@ -169,18 +171,12 @@ class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCre
             db, contype_id=payload.connectorId)
         check_connection_dialet = conn_handler.check_dialect_connection(
             db_type=connector_type.label)
-
         if check_connection_dialet.status == 400:
-            print("check.dialect")
             sch_SCR = StringConnectionResponse(
                 message=check_connection_dialet.message, status=check_connection_dialet.status)
             sch_DCL = DatabaseConnectionListSchema(
                 response=sch_SCR)
             return sch_DCL
-            # raise HTTPException(
-            #     status_code=status.HTTP_400_BAD_REQUEST,
-            #     detail=f'Can"t create connection {check_connection_dialet}'
-            # )
         else:
             # 2. test connection
             test_connection = conn_handler.test_connection(
@@ -193,11 +189,30 @@ class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCre
                     response=sch_SCR)
                 return sch_DCL
             else:
+
+                # BUCKET_PATH_KEYS_AUTH_CONNECTIONS
+                print(test_connection.status)
                 # 3. save file in s3
-                metadata = conn_handler.get_metadata(
-                    test_connection.message.dialect)
-                metadata_objects = conn_handler.get_tables_metadata(
-                    metadata=metadata)
+                if test_connection.message.detail == "BigQuery":
+                    big_query_schema = BigQuerySchemaAuth(password=payload.password,
+                                                          project_id=payload.hostname,
+                                                          dataset_id=payload.database,
+                                                          response=test_connection)
+                    print("entro-convertir_base64")
+                    response = utils.convert_base64_to_big_query(
+                        Base64file=big_query_schema.password, projectId=big_query_schema.project_id)
+                    print("obteniendo metadata")
+                    client = conn_handler.get_metadata_bigquery(
+                        schema_auth=big_query_schema, filename=response.message.dialect)
+                    print("obteniendo_metadata_objects")
+                    metadata_objects = conn_handler.get_tables_metadata_bigquery(
+                        client, big_query_schema.dataset_id)
+                    print("se completó la metadata")
+                else:
+                    metadata = conn_handler.get_metadata(
+                        test_connection.message.dialect)
+                    metadata_objects = conn_handler.get_tables_metadata(
+                        metadata=metadata)
                 # check Create or update
                 if isUpdated:
                     upload_file_s3_details = conn_handler.save_file(

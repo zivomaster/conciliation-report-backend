@@ -1,0 +1,13 @@
+{
+    "type": "service_account",
+    "project_id": "pry-reconciliation",
+    "private_key_id": "2997861de07a17e1f340d50efbbf421b885de9fb",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCWofz0kSKKYOHQ\nTozBSKqWZKI34nWNdk8s+r+welXsTOsGYDaDhPQbgsS57VF+K/OG6XCp1fadoRcP\nXU6SdsJPdGFMQ7kufzUWME+/39h6fdJhJIbQ3nLOoNLBQJmIWrOoKM4s3Ezmd2DU\nGD9Cg3evEQXgI2JKLpFhB60iJly+qhaqoIxws9ncWysF7+AUE/HsxrceQLaoEO2A\nt0oCJHoptjG5vzBrr7QFHZpwhGc+F1tg2luJYCJBmY16biJ99qp+SGyznOhAgVZ1\ntxc5yHCvpViwq1VF01GR5kMoQvjVHxZVQAqYDtorWsJUQ1UIoYDfvSDoZ5XDHQ/j\nFQUS2na1AgMBAAECggEAASseEvq48IKQBLVqs6lmtVim6ueguDuxDxrCigiw5YD8\nGErHw8HUwg2WH37MsWI2UnKnQNsk9F0PmIRFjhyTAJE0dyYxVXbItkbZhBYAol+/\nnzsjX7fSA3Io6X5qAC5EgOsQruxBr5eudxj96KCsAhBrYeQPzVVc/y7lj2gKDthC\nlBnOWeFCCBBvkQHuOHzSKbXA5QWcN9cs/1QgGE5wj9NN4JrriLKOtyZxS09Pl62f\n2Wve6BujzVkM9bFBERM4T+NWWGrFYfXi2a8NZ7dMMVWJ0gRVKwHaifS7w5YwdUud\nukUBfhLw8xHanaDxssypF+cDhu5pKZJVKJVPFSWKswKBgQDKF4z7YYqfKAOnwvrr\nIm6q9k/GH1LdBohOcxqZfPJMnjJW+vZ0kgWfBfGjX4A/Tqg23AKQFFbk2VF9Gbbg\nhm526z6IHBuBHlN+Q1dvpuSCS/LEADhXYh4H40Q/YzfbG7CDxx/0qd+O75rTb7la\nuZWZM1VQzbJg1o0GBhnsT9LiOwKBgQC+0GRO2jGnrQU4E4y1SCtDK5lGt9BFBuEU\n7OOpSeZPp7YTHshgPzK9oOLdnclk1p0G2z2RsyIaxjOxnic12+gMBlHlSoGu/koR\niLcW39Yg7uTTSRoEKC89VRLi6Vxi3ed+JUxps2gmpWvZbWAfoY+ujpqsoR+0DTnh\nw0dOWAcLzwKBgDu3tdtauYHKazoZrdfpttYiLvSWsP/LPGAiN0v/1gG6BZoaUtWj\niLGzKfJi+By8+4wqez9kI0FAzomvHZE/aEkPvsytsZr4ASggcif2IzQ1iSlN/1gj\nEEi4aaRph0nh5skqAFFmGT+9ofy02QrsKD67IozcG8ft3oJXLzXbaK+dAoGAOcGg\nKxH2Z7eCVefs9k5C8hD3UyV+P/aGGKxfeLVqpf+wp/bwVdmrRSS2prgE5qXjX9jq\nuPhMwWfu67tgSPgoM8OR9GJqAIrt5oLIUH8uNEe7MYz19/4l1l2y2sYh9bcPQ+qM\nR45LXy9BBs4Jg2mGsSJvBQO8Meay93gBVGBmuZcCgYEAjNWOx2Ghn+wy1YKm6wu0\nA7qAryRNdtbENCh1/dFZTttcJa5Am9RG9u51sEa0zTd/z2f00hjHJSZSHRDLdUrr\n8f1/bf79+A2fdCYqk98gqAsT38s7bbEV58fhNaktT7KLFs/HBkd9ZwGOnUBDQioU\ndPX59RlzNBw9UM/zHBJRC0w=\n-----END PRIVATE KEY-----\n",
+    "client_email": "backendcrbigquery@pry-reconciliation.iam.gserviceaccount.com",
+    "client_id": "117724140423614398999",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/backendcrbigquery%40pry-reconciliation.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+}

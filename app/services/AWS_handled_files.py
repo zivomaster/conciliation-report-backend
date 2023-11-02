@@ -20,7 +20,7 @@ def s3_upload(contents: bytes, key: str, path: str = None) -> Optional[str]:
         Key=path + key,
         Body=contents
     )
-    return f'the file {key} was saved successfully'
+    return f'the file {key} was saved successfully on {path + key}'
 
 
 def s3_download(key: str, path: str = None):
