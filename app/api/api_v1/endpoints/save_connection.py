@@ -1,7 +1,7 @@
 # typing
 from typing import Any, List, Optional
 # fastAPI
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Response
 # sqlalchemy
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -86,17 +86,24 @@ def list_connections(
     return crud.database_connections.get_all_connections(db)
 
 
-@router.delete("/connection/{connection_id}", response_model=schemas.MessageConnectionResponse)
+@router.delete("/connection/{connection_id}", response_model=Any)
 def delete_connection(
     db: Session = Depends(deps.get_db),
-    connection_id: Optional[uuid.UUID] = None
+    connection_id: Optional[uuid.UUID] = None,
+    response: Response = None
 ) -> Any:
     """
     Retrieve connections
     """
     try:
-        pass
-        # deleted_connection
+        deleted_connection = crud.database_connections.delete_connection(
+            db, id=connection_id)
+        return deleted_connection
     except Exception as e:
-        pass
-    return crud.database_connections.get_all_connections(db)
+        sch_MCR = schemas.MessageConnectionResponse(
+            detail='message',
+            dialect=f"No se pudo eliminar la conexión {connection_id}, error: {e}")
+        sch_SCR = schemas.StringConnectionResponse(
+            message=sch_MCR, status=400)
+        response.status_code = 400
+        return sch_SCR  # HTTPException(status_code=400, detail=sch_SCR)

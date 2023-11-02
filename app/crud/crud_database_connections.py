@@ -8,6 +8,8 @@ from app.services import database_connections_handlers as conn_handler
 from app.models import DatabaseConnection, Type, AuthenticationMethod, ConnectorType
 from app.schemas.database_connection import *
 from app.schemas.bigquery_schema import *
+from app.core.config import settings
+from app.services.AWS_handled_files import s3_delete
 from app import utils
 
 
@@ -235,6 +237,28 @@ class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCre
                     format_output = self.format_struct_to_save(db,
                                                                connections=create_connection)
                     return format_output
+
+    def delete_connection(self, db: Session, id: Optional[uuid.UUID] = None) -> StringConnectionResponse:
+        obj = db.query(DatabaseConnection).get(id)
+        # delete s3 object
+        try:
+            deleted_item = s3_delete(
+                key=obj.file, path=settings.BUCKET_PATH_SAVE_CONNECTIONS)
+            db.delete(obj)
+            db.commit()
+            sch_MCR = MessageConnectionResponse(
+                detail='message',
+                dialect=f"se eliminó la conexión {obj.id} correctamente")
+            sch_SCR = StringConnectionResponse(
+                message=sch_MCR, status=200)
+            return sch_SCR
+        except Exception as e:
+            sch_MCR = MessageConnectionResponse(
+                detail='message',
+                dialect=f"No se pudo eliminar el objeto {obj.id} correctamente: error{e}")
+            sch_SCR = StringConnectionResponse(
+                message=sch_MCR, status=200)
+            return sch_SCR
 
 
 database_connections = CRUDDatabaseConnections(DatabaseConnection)
