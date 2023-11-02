@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from jose import jwt
 import pandas as pd
 import base64
@@ -8,8 +8,9 @@ import json
 from uuid import uuid4
 
 from app.core.config import settings
-from app.services.AWS_handled_files import s3_upload
+from app.services.AWS_handled_files import s3_upload, s3_download
 from app.schemas.msg import StringConnectionResponse, MessageConnectionResponse
+from app.schemas.connection_table import ConnectionTableSchema
 
 
 def generate_password_reset_token(email: str) -> str:
@@ -148,3 +149,75 @@ def convert_base64_to_big_query(Base64file: str, projectId: str) -> Optional[Str
     print(response)
     MCR = MessageConnectionResponse(detail="filename", dialect=filename)
     return StringConnectionResponse(message=MCR, status=200)
+
+
+def get_array_list_tables(key: str,
+                          id_conn: Optional[str],
+                          isExist: Optional[bool] = False) -> List[ConnectionTableSchema]:
+    list_conn_table = []
+    if isExist:
+        path = settings.BUCKET_PATH_TABLES_SELECTED
+        # search file
+        response = s3_download(key=id_conn+'.json',
+                               path=path)
+        # convert to dict
+        json_data = response['Body'].read().decode('utf-8')
+        # Deserialize the JSON string to a Python list
+        json_list = json.loads(json_data)
+        # Convert each dictionary to ConnectionTableSchema instances
+        list_conn_table = [ConnectionTableSchema(**item) for item in json_list]
+    else:
+        path = settings.BUCKET_PATH_SAVE_CONNECTIONS
+        # search file
+        response = s3_download(key=key,
+                               path=path)
+        # convert to dict
+        json_data = response['Body'].read().decode('utf-8')
+        dict_data = json.loads(json_data)
+
+        # get tables
+        array_tables = dict_data["tables"]
+
+        for tables in array_tables:
+            schema = ConnectionTableSchema(name=tables["name"],
+                                           key=tables["key"])
+            list_conn_table.append(schema)
+        # upload file
+        # Convert each ConnectionTableSchema instance to a dictionary and collect in a list
+        list_as_dict = [item.dict() for item in list_conn_table]
+        # Serialize the list to JSON
+        json_data = json.dumps(list_as_dict)
+        key = id_conn + '.json'
+        upload = s3_upload(contents=json_data, key=key,
+                           path=settings.BUCKET_PATH_TABLES_SELECTED)
+    return list_conn_table
+
+
+def update_selected_tables(key: str,
+                           selectedTables: Optional[List[str]] = False) -> List[ConnectionTableSchema]:
+    list_conn_table = []
+    path = settings.BUCKET_PATH_TABLES_SELECTED
+    # search file
+    response = s3_download(key=key,
+                           path=path)
+    # convert to dict
+    json_data = response['Body'].read().decode('utf-8')
+    # Deserialize the JSON string to a Python list
+    json_list = json.loads(json_data)
+    # check selected tables
+    list_updated = [
+        {**table,
+            "isSelected": True} if table["name"] in selectedTables else table
+        for table in json_list
+    ]
+
+    # Convert each dictionary to ConnectionTableSchema instances
+    list_conn_table = [ConnectionTableSchema(**item) for item in list_updated]
+    # upload file
+    # Convert each ConnectionTableSchema instance to a dictionary and collect in a list
+    list_as_dict = [item.dict() for item in list_conn_table]
+    # Serialize the list to JSON
+    contents = json.dumps(list_as_dict)
+    upload = s3_upload(contents=contents, key=key,
+                       path=settings.BUCKET_PATH_TABLES_SELECTED)
+    return list_conn_table

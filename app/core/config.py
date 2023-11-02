@@ -37,9 +37,9 @@ class Settings(BaseSettings):
         "BUCKET_PATH_KEYS", cast=str)
     BUCKET_PATH_KEYS_AUTH_CONNECTIONS: str = config(
         "BUCKET_PATH_KEYS_AUTH_CONNECTIONS", cast=str)
-    
-    BUCKET_PATH_SELECT_CONNECTIONS: str = config(
-        "BUCKET_PATH_SELECT_CONNECTIONS", cast=str)
+
+    BUCKET_PATH_TABLES_SELECTED: str = config(
+        "BUCKET_PATH_TABLES_SELECTED", cast=str)
     # KEY-PAIRS
     PRIVATE_KEY_PEM_NAME: str = config("PRIVATE_KEY_PEM_NAME", cast=str)
     PUBLIC_KEY_PEM_NAME: str = config("PUBLIC_KEY_PEM_NAME", cast=str)

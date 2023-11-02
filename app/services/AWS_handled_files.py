@@ -54,3 +54,25 @@ def s3_delete(key: str, path: str = None) -> Optional[str]:
     except ClientError as err:
         logger.error(str(err))
         return f"Error: {str(err)}"
+
+
+def s3_search(key: str, path: str = None) -> Optional[bool]:
+    # is_exist
+    is_exist = False
+    # get bucket
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
+    )
+    # Check if the object exists in the S3 bucket
+    try:
+        s3.head_object(Bucket=settings.AWS_BUCKET_NAME, Key=path + key)
+        is_exist = True  # Object exists
+    except s3.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            is_exist = False  # Object does not exist
+        else:
+            # Handle other potential errors
+            is_exist = False
+    return is_exist

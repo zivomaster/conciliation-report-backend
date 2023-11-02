@@ -11,4 +11,4 @@ api_router.include_router(
 api_router.include_router(
     generate_keys.router, prefix="/generate-keys", tags=["generate-keys"])
 api_router.include_router(
-    list_tables.router, prefix="/list-metadata", tags=["generate-metadata"])
+    list_tables.router, prefix="/tables", tags=["Select and List Tables"])
