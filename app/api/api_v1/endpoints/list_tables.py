@@ -39,7 +39,7 @@ def list_connections_table(
     return list_conn_table
 
 
-@router.post("/", response_model=List[schemas.ConnectionTableSchema])
+@router.post("-selected/", response_model=List[schemas.ConnectionTableSchema])
 def select_tables(
     db: Session = Depends(deps.get_db),
     id: Optional[uuid.UUID] = None,

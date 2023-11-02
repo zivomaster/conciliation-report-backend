@@ -38,3 +38,20 @@ def s3_download(key: str, path: str = None):
         )
     except ClientError as err:
         logger.error(str(err))
+
+
+def s3_delete(key: str, path: str = None):
+    # get bucket
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
+    )
+    try:
+        logger.info(f'Delete {key} from s3')
+        return s3.delete_objects(
+            Bucket=settings.AWS_BUCKET_NAME,
+            Key=path + key
+        )
+    except ClientError as err:
+        logger.error(str(err))

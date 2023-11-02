@@ -1,5 +1,5 @@
 # typing
-from typing import Any, List
+from typing import Any, List, Optional
 # fastAPI
 from fastapi import APIRouter, HTTPException, Depends, status
 # sqlalchemy
@@ -14,7 +14,7 @@ from app.core import security
 from app.services import database_connections_handlers as conn_handler
 from app import utils
 
-import json
+import uuid
 # cryptography
 router = APIRouter()
 
@@ -83,4 +83,20 @@ def list_connections(
     """
     Retrieve connections
     """
+    return crud.database_connections.get_all_connections(db)
+
+
+@router.delete("/connection/{connection_id}", response_model=schemas.MessageConnectionResponse)
+def delete_connection(
+    db: Session = Depends(deps.get_db),
+    connection_id: Optional[uuid.UUID] = None
+) -> Any:
+    """
+    Retrieve connections
+    """
+    try:
+        pass
+        # deleted_connection
+    except Exception as e:
+        pass
     return crud.database_connections.get_all_connections(db)
