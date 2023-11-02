@@ -74,5 +74,6 @@ class DatabaseConnectionListSchema(BaseModel):
     hostname: Optional[str]
     port: Optional[str]
     connector: Optional[ConnectorSchema]
+    username: Optional[str]
     isFile: Optional[bool] = False
     response: Optional[StringConnectionResponse] = None

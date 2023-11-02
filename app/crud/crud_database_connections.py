@@ -83,7 +83,8 @@ class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCre
                     hostname=item.hostname,
                     port=item.port,
                     connector=connectors[item.contype_id],
-                    isFile=item.is_file
+                    isFile=item.is_file,
+                    username=item.username
                 ) for item in connections
             ]
             return elements
@@ -97,6 +98,7 @@ class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCre
                 port=connections.port,
                 connector=connectors[connections.contype_id],
                 isFile=connections.is_file,
+                username=connections.username,
                 response=msg)
 
     def create_connection_db(self, db: Session,
