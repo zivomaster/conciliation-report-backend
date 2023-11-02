@@ -80,11 +80,12 @@ CREATE TABLE conciliation_report (
     observations TEXT NULL,
     name VARCHAR(100) NOT NULL,
     origin_database VARCHAR(100) NOT NULL,
+    target_database VARCHAR(100) NOT NULL,
     reconciliation VARCHAR(200) NULL,
     created TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     last_updated TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     last_execution TIMESTAMPTZ NULL,
-    last_execution_done BOOLEAN NULL
+    last_execution_done BOOLEAN NULL DEFAULT FALSE
 );
 
 -- ADDING FOREIGN KEY
@@ -122,9 +123,15 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
--- TRIGGER LAST_UPDATED
+
+-- TRIGGERS LAST_UPDATED
 CREATE TRIGGER files_last_updated
 BEFORE UPDATE ON conciliation_report
+FOR EACH ROW
+EXECUTE FUNCTION update_last_updated();
+
+CREATE TRIGGER files_last_updated
+BEFORE UPDATE ON database_connections
 FOR EACH ROW
 EXECUTE FUNCTION update_last_updated();
 
@@ -132,7 +139,7 @@ EXECUTE FUNCTION update_last_updated();
 
 -- TRIGGER LAST_UPDATED
 CREATE TRIGGER report_last_updated
-BEFORE UPDATE ON reconciliation
+BEFORE UPDATE ON conciliation_report
 FOR EACH ROW
 EXECUTE FUNCTION update_last_updated();
 
