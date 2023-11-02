@@ -14,6 +14,6 @@ class ConnectorType(Base):
         'authentication_methods.auth_meth_id'))
     type_id = Column(Integer, ForeignKey('types.type_id'))
     # Definir las relaciones con las otras tablas
-    # authentication_method = relationship(
-    #     "AuthenticationMethod", backref="connectors")
-    # type = relationship("Type", backref="connectors")
+    authentication_method = relationship(
+        "AuthenticationMethod", backref="connectors")
+    type = relationship("Type", backref="connectors")

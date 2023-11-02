@@ -17,7 +17,7 @@ def list_connectors_types(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: models.User = Depends(deps.get_current_authenticated_user),
+    # current_user: models.User = Depends(deps.get_current_authenticated_user),
 ) -> Any:
     """
     Retrieve connectors types.
