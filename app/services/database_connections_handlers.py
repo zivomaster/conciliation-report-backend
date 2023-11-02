@@ -4,7 +4,7 @@ from app.schemas import connection_builder as schema
 from app.schemas import database_connection as db_conn_schema
 from app.schemas import BigQuerySchemaAuth
 import json
-import pyodbc
+# import pyodbc
 from uuid import uuid4
 from sqlalchemy import create_engine, MetaData
 from app.core.config import settings

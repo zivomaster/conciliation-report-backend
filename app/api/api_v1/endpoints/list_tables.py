@@ -71,15 +71,15 @@ def select_tables(
 @router.get("-fields-selected/", response_model=List[schemas.TableDatabaseSchema])
 def list_tables_fields_selected(
     db: Session = Depends(deps.get_db),
-    connection_name: Optional[str] = None
+    id: Optional[str] = None
 ) -> Any:
     """
     Retrieve tables fields selected
     """
 
     # get connection details
-    connection = crud.database_connections.get_connection_by_name(
-        db, connection_name=connection_name)
+    connection = crud.database_connections.get_connection_by_id(
+        db, id=id)
 
     # check if exist in bucket
     key = str(connection.id)+'.json'
