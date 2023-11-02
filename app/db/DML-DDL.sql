@@ -74,7 +74,7 @@ CREATE TABLE datarules(
 
 -- CREATE REPORT TABLE
 
-CREATE TABLE reconciliation (
+CREATE TABLE conciliation_report (
     reconciliation_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     code VARCHAR(100) NOT NULL,
     observations TEXT NULL,
@@ -124,7 +124,7 @@ END;
 $$ LANGUAGE plpgsql;
 -- TRIGGER LAST_UPDATED
 CREATE TRIGGER files_last_updated
-BEFORE UPDATE ON database_connections
+BEFORE UPDATE ON conciliation_report
 FOR EACH ROW
 EXECUTE FUNCTION update_last_updated();
 
