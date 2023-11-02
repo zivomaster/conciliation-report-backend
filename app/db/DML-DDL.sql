@@ -56,6 +56,37 @@ CREATE TABLE database_connections (
     last_updated TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
 );
 
+-- CREATE DATA_RULES TABLE [Homologaciones]
+
+CREATE TABLE datarules_definition(
+    datarules_definition_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description VARCHAR(500) NOT NULL
+);
+
+CREATE TABLE datarules(
+    datarules_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(500) NOT NULL,
+    datarules_definition_id UUID NOT NULL
+);
+
+-- CREATE REPORT TABLE
+
+CREATE TABLE reconciliation (
+    reconciliation_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    code VARCHAR(100) NOT NULL,
+    observations TEXT NULL,
+    name VARCHAR(100) NOT NULL,
+    origin_database VARCHAR(100) NOT NULL,
+    reconciliation VARCHAR(200) NULL,
+    created TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    last_updated TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    last_execution TIMESTAMPTZ NULL,
+    last_execution_done BOOLEAN NULL
+);
+
 -- ADDING FOREIGN KEY
 ALTER TABLE connectors_types
 ADD CONSTRAINT fk_types_id
@@ -77,6 +108,11 @@ ADD CONSTRAINT fk_user_id
 FOREIGN KEY (user_id)
 REFERENCES users (user_id);
 
+ALTER TABLE datarules_definition
+ADD CONSTRAINT fk_datarules_definition_id
+FOREIGN KEY (datarules_definition_id)
+REFERENCES datarules_definition (datarules_definition_id) ON DELETE CASCADE;
+
 -- FUNCTION LAST_UPDATED
 
 CREATE OR REPLACE FUNCTION update_last_updated()
@@ -89,6 +125,14 @@ $$ LANGUAGE plpgsql;
 -- TRIGGER LAST_UPDATED
 CREATE TRIGGER files_last_updated
 BEFORE UPDATE ON database_connections
+FOR EACH ROW
+EXECUTE FUNCTION update_last_updated();
+
+-- FUNCTION LAST_UPDATED
+
+-- TRIGGER LAST_UPDATED
+CREATE TRIGGER report_last_updated
+BEFORE UPDATE ON reconciliation
 FOR EACH ROW
 EXECUTE FUNCTION update_last_updated();
 

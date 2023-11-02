@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.api_v1.endpoints import list_tables, login, users, connectors_types, save_connection, generate_keys
+from app.api.api_v1.endpoints import list_tables, login, users, connectors_types, save_connection, generate_keys, datarules
 
 api_router = APIRouter()
 api_router.include_router(login.router, tags=["Authentication"])
@@ -12,3 +12,5 @@ api_router.include_router(
     generate_keys.router, prefix="/generate-keys", tags=["GenerateKeys"])
 api_router.include_router(
     list_tables.router, prefix="/tables", tags=["Select/List Tables"])
+api_router.include_router(
+    datarules.router, prefix="/datarules", tags=["Homologaciones"])
