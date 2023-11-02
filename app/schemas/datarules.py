@@ -28,3 +28,8 @@ class DatarulesDefinitionCreate(DatarulesDefinitionBase):
 
 class DatarulesDefinition(DatarulesDefinitionBase):
     pass
+
+class DatarulesList(BaseModel):
+    id: Optional[UUID4]
+    name: str
+    description: str

@@ -127,15 +127,14 @@ class CRUDDatarules(CRUDBase[Datarules, schemas.DatarulesDefinitionCreate, schem
         return None  # Handle the case when the datarules ID doesn't exist
     
     
-    def get_all_datarules_definitions(self, db: Session)->list[schemas.DatarulesDefinition]:
+    def get_all_datarules_definitions(self, db: Session)->list[schemas.DatarulesList]:
         # Fetch the datarules by its ID
         all_data = []
         df_all = db.query(DatarulesDefinition).all()
         for fetch in df_all:
-            tmp = schemas.DatarulesDefinition(id=fetch.datarules_definition_id,
+            tmp = schemas.DatarulesList(id=fetch.datarules_definition_id,
                                            name=fetch.name,
-                                           description=fetch.description,
-                                           datarules=self.get_datarules(db,datarules_definition_id=fetch.datarules_definition_id))
+                                           description=fetch.description)
             all_data.append(tmp)
         return all_data
     
