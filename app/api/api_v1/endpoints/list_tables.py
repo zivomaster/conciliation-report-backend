@@ -49,7 +49,7 @@ def select_tables(
 ) -> Any:
     """
     Update selected tables
-    """ 
+    """
     # get connection details
     connection = crud.database_connections.get_connection_by_id(db, id=id)
 
@@ -66,3 +66,32 @@ def select_tables(
         response = get_array_list_tables(
             key=connection.file, id_conn=str(connection.id))
         return response
+
+
+# @router.get("-fields-selected/", response_model=List[schemas.TableDatabaseSchema])
+# def list_tables_fields_selected(
+#     db: Session = Depends(deps.get_db),
+#     connection_name: Optional[str] = None
+# ) -> Any:
+#     """
+#     Retrieve tables fields selected
+#     """
+
+#     # get connection details
+#     connection = crud.database_connections.get_connection_by_name(
+#         db, connection_name=connection_name)
+
+#     # check if exist in bucket
+#     key = str(connection.id)+'.json'
+#     isExist = s3_search(key=key,
+#                         path=settings.BUCKET_PATH_TABLES_SELECTED)
+#     if isExist:
+#         # isSelected
+#         response = get_array_tables_selected(
+#             key=connection.file, id_conn=str(connection.id), isExist=isExist)
+#         return response
+#     else:
+#         # full
+#         response = get_array_list_all_tables(
+#             key=connection.file, id_conn=str(connection.id))
+#         return response

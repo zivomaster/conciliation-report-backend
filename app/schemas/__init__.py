@@ -6,4 +6,4 @@ from .database_connection import *
 from .metadata import TableColumnSchema, TableMetadataSchema
 from .connection_builder import ConnectionBuilderBigQuery, ConnectionBuilderMongoDB, ConnectionBuilderRDS, StringConnectionResponse
 from .bigquery_schema import BigQuerySchemaAuth
-from .connection_table import ConnectionTableSchema
+from .connection_table import ConnectionTableSchema, FieldsTableSchema, TableDatabaseSchema

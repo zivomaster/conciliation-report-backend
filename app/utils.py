@@ -206,8 +206,8 @@ def update_selected_tables(key: str,
     json_list = json.loads(json_data)
     # check selected tables
     list_updated = [
-        {**table,
-            "isSelected": True} if table["name"] in selectedTables else table
+        {**table, "isSelected": True} if table["name"] in selectedTables else {
+            **table, "isSelected": False}
         for table in json_list
     ]
 

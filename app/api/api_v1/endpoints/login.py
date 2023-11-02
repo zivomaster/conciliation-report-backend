@@ -60,7 +60,19 @@ def login_access_token(
 @router.post("/login/test-token", response_model=schemas.User)
 def test_token(current_user: models.User = Depends(deps.get_current_user)) -> Any:
     """
-    Test access token
+    Create an invoice.
+
+    This will (let's imagine) let the API user (some external developer) create an
+    invoice.
+
+    And this path operation will:
+
+    * Send the invoice to the client.
+    * Collect the money from the client.
+    * Send a notification back to the API user (the external developer), as a callback.
+        * At this point is that the API will somehow send a POST request to the
+            external API with the notification of the invoice event
+            (e.g. "payment successful").
     """
     return current_user
 

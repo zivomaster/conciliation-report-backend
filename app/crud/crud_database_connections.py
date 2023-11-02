@@ -18,6 +18,9 @@ class CRUDDatabaseConnections(CRUDBase[DatabaseConnection, DatabaseConnectionCre
     def get_connection_by_id(self, db: Session, id: uuid) -> Optional[DatabaseConnection]:
         return db.query(DatabaseConnection).filter(DatabaseConnection.id == id).first()
 
+    def get_connection_by_name(self, db: Session, connection_name: str) -> Optional[DatabaseConnection]:
+        return db.query(DatabaseConnection).filter(DatabaseConnection.connection_name == connection_name).first()
+
     def check_if_connection_exists(self, db: Session, connection_name: str) -> Optional[DatabaseConnection]:
         return db.query(DatabaseConnection).filter(DatabaseConnection.connection_name == connection_name).first()
 
